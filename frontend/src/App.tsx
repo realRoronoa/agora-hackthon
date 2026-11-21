@@ -223,8 +223,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0B0D10] text-[#E2E8F0] flex flex-col font-sans selection:bg-red-500/30 selection:text-red-200">
-      {/* Top DevOps Command Header */}
-      <header className="border-b border-[#22262E] bg-[#0E1116] px-4 py-2 flex flex-col gap-2 shrink-0">
+      {/* Top DevOps Command Header - Sticky & Always Visible */}
+      <header className="sticky top-0 z-50 border-b border-[#22262E] bg-[#0E1116]/95 backdrop-blur-sm px-4 py-2 flex flex-col gap-2 shrink-0 shadow-lg shadow-black/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -368,6 +368,7 @@ export default function App() {
             onCallStart={handleCallStart}
             onCallStop={handleCallStop}
             onSimulateVoice={handleSimulateVoice}
+            onTriggerCall={() => handleSimulate("critical")}
             isDemoMode={healthConfig.demo_mode}
             ttsMode={healthConfig.tts_mode}
             llmMode={healthConfig.llm_mode}

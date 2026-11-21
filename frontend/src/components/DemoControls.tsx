@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Zap, AlertTriangle, Loader2 } from "lucide-react";
+import { Zap, PhoneCall, Loader2 } from "lucide-react";
 
 interface DemoControlsProps {
   onSimulate: (scenario: "minor" | "critical") => Promise<void>;
@@ -20,34 +20,34 @@ export const DemoControls: React.FC<DemoControlsProps> = ({ onSimulate, disabled
 
   return (
     <div className="flex items-center gap-2">
-      {/* Tier 1 Flaky Build Button */}
+      {/* Tier 1 Auto-Heal Button */}
       <button
         onClick={() => handleTrigger("minor")}
         disabled={disabled || loadingScenario !== null}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono font-medium rounded-md bg-[#181C24] hover:bg-[#22262E] text-emerald-400 border border-emerald-900/50 hover:border-emerald-500/50 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-        title="Simulate Flaky CI Test - Autonomous Self-Healing"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-semibold rounded-md bg-[#13221C] hover:bg-[#1A3327] text-emerald-300 border border-emerald-700/60 hover:border-emerald-400 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0"
+        title="Simulate Flaky CI Test - Autonomous Silent Self-Healing"
       >
         {loadingScenario === "minor" ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
         ) : (
-          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          <Zap className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/30" />
         )}
-        <span>Simulate Tier 1 (Flaky Build)</span>
+        <span>Simulate Tier 1: Auto-Heal</span>
       </button>
 
-      {/* Tier 2 Critical Crash Button */}
+      {/* Tier 2 Critical Call Button */}
       <button
         onClick={() => handleTrigger("critical")}
         disabled={disabled || loadingScenario !== null}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs font-mono font-medium rounded-md bg-red-950/40 hover:bg-red-900/40 text-red-400 border border-red-800/60 hover:border-red-500 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-red-950/50"
-        title="Simulate Production Checkout Crash - Rings Phone via Agora Voice"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-semibold rounded-md bg-red-950/70 hover:bg-red-900/80 text-red-200 border border-red-600 hover:border-red-400 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-red-950/80 shrink-0 animate-pulse"
+        title="Trigger Critical Production Crash - Real-Time Agora Voice Call to On-Call Phone"
       >
         {loadingScenario === "critical" ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin text-red-400" />
         ) : (
-          <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+          <PhoneCall className="w-3.5 h-3.5 text-red-400 fill-red-400/20" />
         )}
-        <span>Simulate Tier 2 (Prod Checkout Crash)</span>
+        <span>Trigger Tier 2 & Call Developer</span>
       </button>
     </div>
   );
