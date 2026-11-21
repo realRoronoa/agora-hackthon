@@ -17,26 +17,55 @@ router = APIRouter(prefix="/api", tags=["webhooks"])
 
 @router.post("/webhooks/github")
 async def github_webhook(request: Request):
-    """Handles GitHub Actions workflow failure webhooks."""
+    """Handles GitHub Actions workflow failure webhooks and GitHub ping events."""
     payload = await request.json()
+
+    # 1. Handle GitHub Ping handshake
+    event_type = request.headers.get("X-GitHub-Event", "").lower()
+    if event_type == "ping" or "zen" in payload:
+        return {
+            "status": "pong",
+            "message": "NightWatch AI webhook active and listening",
+            "zen": payload.get("zen", "Keep it logically awesome."),
+            "hook_id": payload.get("hook_id"),
+        }
+
     action = payload.get("action", "")
+    workflow = payload.get("workflow", {})
     workflow_run = payload.get("workflow_run", {})
 
+    # 2. Prevent recursion loops: ignore rollback workflow runs
+    workflow_name = workflow_run.get("name") or workflow.get("name", "")
+    workflow_path = workflow_run.get("path") or workflow.get("path", "")
+    if "rollback" in str(workflow_name).lower() or "rollback" in str(workflow_path).lower():
+        return {
+            "status": "ignored",
+            "reason": "Ignoring rollback workflow run to prevent recursive trigger loop",
+        }
+
+    # 3. Only process failed completed runs
     conclusion = workflow_run.get("conclusion")
     if conclusion != "failure":
         return {"status": "ignored", "reason": f"Conclusion is {conclusion}"}
 
     repo_name = payload.get("repository", {}).get("full_name", settings.GITHUB_REPO or "acme-corp/checkout-service")
-    commit_sha = workflow_run.get("head_sha", "c7f91a2")[:7]
-    branch = workflow_run.get("head_branch", "main")
+    commit_sha = (workflow_run.get("head_sha") or "c7f91a2")[:7]
+    branch = workflow_run.get("head_branch") or "main"
     run_id = str(workflow_run.get("id", "982341201"))
+    run_url = workflow_run.get("html_url") or f"https://github.com/{repo_name}/actions/runs/{run_id}"
+    commit_msg = (workflow_run.get("head_commit") or {}).get("message") or "Production CI step failed"
+    workflow_title = workflow_name or "CI Pipeline"
 
     # Extract or synthesize error log from workflow failure
     raw_logs = (
-        "FATAL: DatabaseConnectionPoolExhausted - 50 pool connections saturated.\n"
-        "CheckoutController: Unable to obtain database connection within 5000ms.\n"
-        "POST /api/v1/checkout HTTP/1.1 -> 500 Internal Server Error (error rate: 91.4%)\n"
-        "PaymentGatewayTimeoutException: downstream connection refused."
+        f"🚨 GitHub Actions Workflow FAILED: '{workflow_title}'\n"
+        f"Repository: {repo_name} | Branch: {branch} | Commit: {commit_sha}\n"
+        f"Message: {commit_msg}\n"
+        f"Run URL: {run_url}\n\n"
+        f"FATAL: DatabaseConnectionPoolExhausted - 50 pool connections saturated.\n"
+        f"CheckoutController: Unable to obtain database connection within 5000ms.\n"
+        f"POST /api/v1/checkout HTTP/1.1 -> 500 Internal Server Error (error rate: 94.2%)\n"
+        f"PaymentGatewayTimeoutException: downstream connection refused."
     )
 
     incident_id = f"inc-{uuid.uuid4().hex[:6]}"

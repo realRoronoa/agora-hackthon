@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     GITHUB_TOKEN: str = ""
     GITHUB_REPO: str = "owner/repo"
     GITHUB_ROLLBACK_WORKFLOW: str = "rollback.yml"
+    GITHUB_DEFAULT_BRANCH: str = "main"
 
     model_config = SettingsConfigDict(
         env_file=(str(ENV_FILE_PATH), ".env"),

@@ -1,0 +1,38 @@
+name: Demo CI Pipeline (Break on Demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      failure_type:
+        type: choice
+        description: 'Select Failure Simulation Type for Judging'
+        required: true
+        default: 'critical_db_crash'
+        options:
+          - critical_db_crash
+          - flaky_timeout
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Build & Health Verification
+        run: |
+          echo "🚀 Starting CI/CD build for checkout-service..."
+          sleep 1
+          if [ "${{ github.event.inputs.failure_type }}" = "critical_db_crash" ]; then
+            echo "FATAL [checkout-service] DatabaseConnectionPoolExhausted: Pool max size (50) reached. 89.2% failure rate on /v1/checkout/confirm"
+            echo "PoolExhaustionError: Max connections (50) exhausted. Active leases: 50. Queued: 412."
+            echo "Process terminated: SIGSEGV in worker pthread_join"
+            exit 1
+          elif [ "${{ github.event.inputs.failure_type }}" = "flaky_timeout" ]; then
+            echo "WARN [ci-runner] Transient ETIMEDOUT during npm registry cache fetch (flaky test)"
+            echo "ConnectionResetError: [Errno 104] Connection reset by peer"
+            echo "Test suite failed to run: Socket hangup during asset compilation."
+            exit 1
+          else
+            echo "✅ Pipeline Build Passed Cleanly"
+          fi

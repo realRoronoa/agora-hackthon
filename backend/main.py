@@ -44,7 +44,21 @@ app.include_router(webhooks.router)
 app.include_router(calls.router)
 app.include_router(tools.router)
 
-FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+def resolve_frontend_dist() -> Path:
+    candidates = [
+        Path(__file__).resolve().parent / "dist",
+        Path(__file__).resolve().parent.parent / "frontend" / "dist",
+        Path(__file__).resolve().parent / "static",
+        Path.cwd() / "dist",
+        Path.cwd() / "frontend" / "dist",
+    ]
+    for c in candidates:
+        if (c / "index.html").exists():
+            return c
+    return candidates[0]
+
+
+FRONTEND_DIST = resolve_frontend_dist()
 if (FRONTEND_DIST / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
 
