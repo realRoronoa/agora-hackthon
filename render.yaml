@@ -2,6 +2,8 @@ services:
   - type: web
     name: nightwatch-ai
     env: python
+    region: oregon
+    plan: free
     buildCommand: "cd frontend && npm install && npm run build && cd ../backend && pip install -r requirements.txt"
     startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
@@ -9,3 +11,25 @@ services:
         value: 3.11.9
       - key: DEMO_MODE
         value: "false"
+      - key: TOOL_WEBHOOK_SECRET
+        value: "nightwatch-dev-secret-2026"
+      - key: GEMINI_MODEL
+        value: "gemini-3.6-flash"
+      - key: GEMINI_AGORA_MODE
+        value: "openai_compat"
+      - key: ENABLE_RTM_TRANSCRIPTS
+        value: "false"
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: AGORA_APP_ID
+        sync: false
+      - key: AGORA_APP_CERTIFICATE
+        sync: false
+      - key: AGORA_CUSTOMER_ID
+        sync: false
+      - key: AGORA_CUSTOMER_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MURF_API_KEY
+        sync: false

@@ -3,6 +3,8 @@
 > **Hackathon MVP for "Build with Agora - BLR" (Agora + Google Gemini + Murf AI + AWS / DevOps)**  
 > Built for zero-fatigue on-call operations: auto-heals flaky CI/CD builds silently, but rings the engineer at 2:14 AM via Agora Conversational AI voice when catastrophic production outages strike—requiring strict, verbal permission-scoped authorization before destructive rollbacks can execute.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/realRoronoa/agora-hackthon)
+
 ---
 
 ## ⚡ Quick Start (Runnable in 60 Seconds)
