@@ -1,12 +1,13 @@
 import json
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from pathlib import Path
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from config import settings
 from models import HealthConfigResponse
 from services.state import manager, get_active_incident, get_audit_logs, get_all_incidents
-from pathlib import Path
-from fastapi.staticfiles import StaticFiles
 from routers import webhooks, calls, tools
 
 
@@ -43,9 +44,16 @@ app.include_router(webhooks.router)
 app.include_router(calls.router)
 app.include_router(tools.router)
 
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if (FRONTEND_DIST / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIST / "assets")), name="assets")
+
 
 @app.get("/")
 async def root():
+    index_file = FRONTEND_DIST / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
     return {
         "app": "NightWatch AI",
         "description": "DevOps Incident Command Console & Autonomous Voice Escalator",
@@ -128,10 +136,18 @@ async def websocket_events(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-# Mount built frontend static files for Single-Service Production Deployment
-FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
-if FRONTEND_DIST.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+# Catch-all route to serve SPA files / subpaths
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    if full_path.startswith("api") or full_path.startswith("ws") or full_path in ["docs", "openapi.json", "redoc"]:
+        raise HTTPException(status_code=404, detail="Not Found")
+    file_path = FRONTEND_DIST / full_path
+    if file_path.is_file():
+        return FileResponse(str(file_path))
+    index_file = FRONTEND_DIST / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 if __name__ == "__main__":
